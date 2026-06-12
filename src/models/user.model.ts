@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import type { UserEntity } from "../types/user.type";
+import { hashPassword } from "../utils/hashing";
 
 const Schema = mongoose.Schema;
 
@@ -16,6 +17,20 @@ const UserSchema = new Schema<UserEntity>(
   },
   { timestamps: true },
 );
+
+UserSchema.pre("save", async function () {
+  const user = this;
+  if (user.isModified("password")) {
+    // Hash the password before saving
+    user.password = await hashPassword(user.password);
+  }
+});
+
+UserSchema.methods.toJSON = function () {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
 const UserModel = mongoose.model<UserEntity>("User", UserSchema);
 
