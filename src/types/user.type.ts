@@ -18,3 +18,8 @@ export interface UserRegisterRequest {
   password: string;
   confirmPassword: string;
 }
+
+export interface UserLoginRequest {
+  identifier: string;
+  password: string;
+}
