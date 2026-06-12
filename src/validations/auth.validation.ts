@@ -9,7 +9,7 @@ export const userRegisterValidation = Yup.object({
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
-  confirmedPassword: Yup.string()
+  confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), ""], "Passwords must match")
     .required("Confirmed password is required"),
 });

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { UserRegisterRequest } from "../types/user.type";
 import { userRegisterValidation } from "../validations/auth.validation";
 import { ValidationError } from "yup";
+import UserModel from "../models/user.model";
 
 export default {
   async register(req: Request, res: Response) {
@@ -11,18 +12,21 @@ export default {
         stripUnknown: true,
       });
 
-      const { fullName, username, email, password, confirmedPassword } =
+      const { fullName, username, email, password, confirmPassword } =
         value as UserRegisterRequest;
+
+      const result = await UserModel.create({
+        fullName,
+        email,
+        username,
+        password,
+      })
 
       return res.status(201).json({
         status: "success",
         statusCode: 201,
         message: "Success registration",
-        data: {
-          fullName,
-          username,
-          email,
-        },
+        data: result,
       });
     } catch (error) {
       if (error instanceof ValidationError) {
