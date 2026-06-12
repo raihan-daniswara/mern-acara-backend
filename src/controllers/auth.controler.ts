@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
-import type { UserLoginRequest, UserRegisterRequest } from "../types/user.type";
+import type {
+  UserEntity,
+  UserLoginRequest,
+  UserRegisterRequest,
+  UserRequest,
+} from "../types/user.type";
 import {
   userLoginValidation,
   userRegisterValidation,
@@ -7,6 +12,7 @@ import {
 import { ValidationError } from "yup";
 import UserModel from "../models/user.model";
 import { verifyPassword } from "../utils/hashing";
+import { generateToken, getUserData } from "../utils/jwt";
 
 export default {
   async register(req: Request, res: Response) {
@@ -21,6 +27,32 @@ export default {
 
       const { fullName, username, email, password } =
         value as UserRegisterRequest;
+
+      const existingUser = await UserModel.findOne({
+        $or: [{ username }, { email }],
+      });
+
+      if (existingUser) {
+        const errors = [];
+        if (existingUser.username === username) {
+          errors.push({
+            path: "username",
+            message: "Username already exists",
+          });
+        }
+        if (existingUser.email === email) {
+          errors.push({
+            path: "email",
+            message: "Email already exists",
+          });
+        }
+        return res.status(409).json({
+          status: "error",
+          statusCode: 409,
+          message: "User already exists",
+          data: errors,
+        });
+      }
 
       const result = await UserModel.create({
         fullName,
@@ -71,15 +103,15 @@ export default {
 
       const { identifier, password } = value as UserLoginRequest;
 
-      const findUser = await UserModel.findOne({
+      const userByIdentifier = await UserModel.findOne({
         $or: [{ username: identifier }, { email: identifier }],
       });
 
-      if (findUser) {
+      if (userByIdentifier) {
         // checking password
         const isPasswordValid: boolean = await verifyPassword(
           password,
-          findUser.password,
+          userByIdentifier.password,
         );
         if (!isPasswordValid) {
           // Password incorrect
@@ -90,12 +122,18 @@ export default {
             data: null,
           });
         }
+
+        const token = generateToken({
+          id: userByIdentifier._id,
+          role: userByIdentifier.role,
+        });
+
         // Login successful
         return res.status(200).json({
           status: "success",
           statusCode: 200,
           message: "Login successful",
-          data: findUser,
+          data: token,
         });
       }
       // User not found
@@ -119,6 +157,26 @@ export default {
           }),
         });
       }
+      res.status(500).json({
+        status: "error",
+        statusCode: 500,
+        message: "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  async profile(req: UserRequest, res: Response) {
+    try {
+      const user = req.user;
+      const result = (await UserModel.findById(user?.id)) as UserEntity;
+      return res.status(200).json({
+        status: "success",
+        statusCode: 200,
+        message: "Success get user profile",
+        data: result,
+      });
+    } catch (error) {
       res.status(500).json({
         status: "error",
         statusCode: 500,
