@@ -1,30 +1,25 @@
 import express from "express";
-import { PORT } from "./config/env.config";
-import router from "./routes/api";
-import "./utils/database";
-import connectDB from "./utils/database";
-import docs from "./docs/route";
 import cors from "cors";
+import router from "./routes/api";
+import docs from "./docs/route";
+import "./utils/database";
 
-async function init() {
-  try {
-    const result = await connectDB;
-    console.log("Database status: " + result);
+const app = express();
 
-    const app = express();
-    app.use(cors())
-    app.use(express.json());
+app.use(cors());
+app.use(express.json());
 
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+docs(app);
 
-    app.use("/api", router);
+app.use("/api", router);
 
-    docs(app);
-  } catch (error) {
-    console.error("Failed to start the server: ", error);
-  }
-}
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    statusCode: 200,
+    message: "Backend Acara API is running",
+    data: "OK"
+  });
+});
 
-init();
+export default app;

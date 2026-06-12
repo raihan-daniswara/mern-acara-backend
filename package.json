@@ -4,12 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "docs": "bun src/docs/swagger.ts",
+    "build": "bun run docs && bun build src/index.ts --outdir dist --target bun",
     "start:prod": "bun dist/index.js",
-    "typecheck": "tsc --noEmit",
-    "docs": "bun src/docs/swagger.ts"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest",
