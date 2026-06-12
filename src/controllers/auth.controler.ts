@@ -16,6 +16,12 @@ import { generateToken, getUserData } from "../utils/jwt";
 
 export default {
   async register(req: Request, res: Response) {
+    /**
+      #swagger.requestBody = {
+        required: true,
+        schema: {$ref: "#/components/schemas/RegisterRequest"}
+      }
+     */
     try {
       const value: UserRegisterRequest = await userRegisterValidation.validate(
         req.body,
@@ -91,6 +97,12 @@ export default {
   },
 
   async login(req: Request, res: Response) {
+    /**
+      #swagger.requestBody = {
+        required: true,
+        schema: {$ref: "#/components/schemas/LoginRequest"}
+      }
+     */
     try {
       // ambil data user berdasarkan identifier (username atau email)
       const value: UserLoginRequest = await userLoginValidation.validate(
@@ -167,6 +179,11 @@ export default {
   },
 
   async profile(req: UserRequest, res: Response) {
+    /**
+      #swagger.security = [{
+        "bearerAuth": []
+      }]
+     */
     try {
       const user = req.user;
       const result = (await UserModel.findById(user?.id)) as UserEntity;
